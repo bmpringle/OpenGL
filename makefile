@@ -1,2 +1,2 @@
 default:
-	clang++ -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -L/usr/local/lib -lglfw3 -I./glad/include ./glad/src/glad.c hw0.cpp
+	clang++ -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -L/usr/local/lib -lglfw3 -I./glad/include -I/usr/local/Cellar/boost/1.72.0_2/include -L/usr/local/Cellar/boost/1.72.0_2/lib main.cpp ./glad/src/glad.c -o engine.build

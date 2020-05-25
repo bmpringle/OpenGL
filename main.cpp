@@ -6,9 +6,10 @@ extern "C" {
 #include<stdio.h> 
 #include<iostream>
 #include<fstream>
-#include "Scene.cpp"
+#include "Logic.cpp"
 
 static Scene scene = Scene();
+static Logic logic = Logic();
 
 void error_callback(int error, const char* description)
 {
@@ -107,12 +108,19 @@ GLFWwindow* loadGLFW() {
 
 void render(GLFWwindow* window, int width, int height, unsigned int VAO, unsigned int shaderProgram) {
     glUseProgram(shaderProgram);  
-    glDrawArrays(GL_TRIANGLES, 0, scene.root_node.getVertices().size());
+    glDrawArrays(GL_TRIANGLES, 0, scene.getRenderVertices().size());
 }
 
-void logic(unsigned int VAO) {
+void _logic(unsigned int VAO, GLFWwindow* window) {
+
+    scene = logic.doLogicTick(scene, window);
     glBindVertexArray(VAO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(scene.root_node.getVertices()), scene.root_node.getVertices().data(), GL_STATIC_DRAW);
+    float array [scene.getRenderVertices().size()];
+
+    for(int i=0; i<scene.getRenderVertices().size(); ++i) {
+        array[i] = scene.getRenderVertices()[i];
+    }
+    glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
 }
 
 int main() {
@@ -145,18 +153,14 @@ int main() {
     glGenBuffers(1, &VBO);
 
     unsigned int VAO = makeVAO(VBO); 
-
-    //set scene
-    std::vector<float> vertices_vector = std::vector<float>();
-    vertices_vector.push_back(-0.5f), vertices_vector.push_back(-0.5f), vertices_vector.push_back(0.0f),
-    vertices_vector.push_back(0.5f), vertices_vector.push_back(-0.5f), vertices_vector.push_back(0.0f),
-    vertices_vector.push_back(0.0f),  vertices_vector.push_back(0.5f), vertices_vector.push_back(0.0f);
-    scene.root_node.children.push_back(Node("triangle1", vertices_vector, std::vector<Node>()));
-
+    
+    scene = logic.setup(scene);
+    glClearColor(1, 0, 0, 1);
     //run app
     while(!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
-        logic(VAO);
+        _logic(VAO, window);
+
         render(window, width, height, VAO, shaderProgram);
         glfwSwapBuffers(window);
         glfwPollEvents();
