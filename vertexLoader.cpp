@@ -1,7 +1,7 @@
 #include<vector>
 #include<fstream>
-#include<boost/algorithm/string.hpp>
 #include<iostream>
+#include<sstream>
 
 struct float3 {
     float3(float _x = 0, float _y = 0, float _z = 0) : 
@@ -40,6 +40,18 @@ static std::vector<std::string> loadFileToString(std::string fromFile) {
     return contents;
 }
 
+std::vector<std::string> split(const std::string& s, char delimiter)
+{
+   std::vector<std::string> tokens;
+   std::string token;
+   std::istringstream tokenStream(s);
+   while (std::getline(tokenStream, token, delimiter))
+   {
+      tokens.push_back(token);
+   }
+   return tokens;
+}
+
 static std::vector<Triangle> loadTriangles(std::string fromFile) {
     std::vector<std::string> text_raw = loadFileToString(fromFile);
     std::vector<Triangle> triangle_vector = std::vector<Triangle>();
@@ -64,10 +76,9 @@ static std::vector<Triangle> loadTriangles(std::string fromFile) {
             std::cout << "a" << std::endl;
             vertexToPush = 0;
         }else {
-            std::vector<std::string> s_floats = std::vector<std::string>();
+            std::vector<std::string> s_floats = split(raw_line, ' ');
             std::vector<float> floats = std::vector<float>();
-           
-            boost::split(s_floats, raw_line, isSpace);
+
             for(int j=0; j<s_floats.size(); ++j) {
                 floats.push_back(std::stof(s_floats[j]));
             }
