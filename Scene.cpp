@@ -5,13 +5,13 @@ class Scene {
         Node root_node;
         float aspectRatio = 1;
 
-        Scene() : root_node("root", std::vector<Triangle>(), std::vector<Node>()) {
+        Scene() : root_node("root", std::vector<Vertex>(), std::vector<Node>({Node("border", loadTriangles("border.txt"))})) {
         }
 
         std::vector<float> getRenderVertices() {
-            std::vector<float> verts = root_node.getVertices();
-            for(int i=0; i<verts.size()/3; ++i) {
-                verts[i*3] = verts[i*3]/aspectRatio;
+            std::vector<float> verts = root_node.getVectorBuffer();
+            for(int i=0; i<verts.size()/7; ++i) {
+                verts[i*7] = verts[i*7]/aspectRatio;
             }
             return verts;
         }

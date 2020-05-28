@@ -2,12 +2,11 @@
 
 class Logic {
     public:
-        Logic() : p1(Node("paddle1", loadTriangles("paddle.txt"), std::vector<Node>())), p2(Node("paddle2", loadTriangles("paddle.txt"), std::vector<Node>())), ball(Node("ball", loadTriangles("ball.txt"), std::vector<Node>())) {
-
-        }
 
         Scene setup(Scene scene) {
-            
+            Node p1 = Node("paddle1", loadTriangles("paddle.txt"));
+            Node p2 = Node("paddle2", loadTriangles("paddle.txt"));
+            Node ball = Node("ball", loadTriangles("ball.txt"));
             p1.setPos(float3(-1, -0.15, 0));
             p2.setPos(float3(1-0.02, -0.15, 0));
 
@@ -23,9 +22,4 @@ class Logic {
             scene.updateAspectRatio(width, height);
             return scene;
         }
-    
-    private:
-        Node p1;
-        Node p2;
-        Node ball;
 };

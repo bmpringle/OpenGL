@@ -11,10 +11,18 @@ struct float3 {
     float z;
 };
 
-struct Triangle {
+struct float4 {
+    float4(float _x = 0, float _y = 0, float _z = 0, float _w = 0) : 
+        x(_x), y(_y),z(_z), w(_w) {};
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+struct Vertex {
     float3 v1;
-    float3 v2;
-    float3 v3;
+    float4  color;
 };
 
 static bool isSpace(char c) {
@@ -40,30 +48,20 @@ static std::vector<std::string> loadFileToString(std::string fromFile) {
     return contents;
 }
 
-static std::vector<Triangle> loadTriangles(std::string fromFile) {
+static std::vector<Vertex> loadTriangles(std::string fromFile) {
     std::vector<std::string> text_raw = loadFileToString(fromFile);
-    std::vector<Triangle> triangle_vector = std::vector<Triangle>();
+    std::vector<Vertex> vertices = std::vector<Vertex>();
 
-    //triangle being built
-    Triangle triangle = Triangle();
-    float3 v = float3();
-    v.x = 0;
-    v.y = 0;
-    v.z = 0;
-    triangle.v1 = v;
-    triangle.v2 = v;
-    triangle.v3 = v;
-
-    int vertexToPush = 0;
+    //vertex being built
+    float3 v0 = float3();
+    float4 v1 = float4();
+    Vertex v = Vertex();
+    v.color = v1;
+    v.v1 = v0;
 
     for(int i=0; i < text_raw.size(); ++i) {
         std::string raw_line = text_raw[i];
-        if(raw_line[0] == '*') {
-            //push triangle triangle
-            triangle_vector.push_back(triangle);
-            std::cout << "a" << std::endl;
-            vertexToPush = 0;
-        }else {
+
             std::vector<std::string> s_floats = std::vector<std::string>();
             std::vector<float> floats = std::vector<float>();
            
@@ -71,80 +69,18 @@ static std::vector<Triangle> loadTriangles(std::string fromFile) {
             for(int j=0; j<s_floats.size(); ++j) {
                 floats.push_back(std::stof(s_floats[j]));
             }
+            v.v1 = float3(floats[0], floats[1], floats[2]);
+            v.color = float4(floats[3], floats[4], floats[5], floats[6]);
+            vertices.push_back(v);
 
-            if(vertexToPush == 0) {
-                float3 f3 = float3(floats[0], floats[1], floats[2]);;
-                triangle.v1 = f3;
-            }else if(vertexToPush == 1) {
-                float3 f3 = float3(floats[0], floats[1], floats[2]);;
-                triangle.v2 = f3;
-            }else if(vertexToPush == 2) {
-                float3 f3 = float3(floats[0], floats[1], floats[2]);;
-                triangle.v3 = f3;
+            for(int i=0; i<vertices.size(); ++i) {
+                std::cout << v.v1.x << v.v1.y << v.v1.z << v.color.x << v.color.y << v.color.z << v.color.w << std::endl;
             }
-            ++vertexToPush;
-        }
+    }
+
+    for(int i=0; i<vertices.size(); ++i) {
+        std::cout << vertices[i].v1.x << vertices[i].v1.y << vertices[i].v1.z << vertices[i].color.x << vertices[i].color.y << vertices[i].color.z << vertices[i].color.w << std::endl;
     }
     
-    for(int i=0; i<triangle_vector.size(); ++i) {
-        std::cout << triangle_vector[i].v1.x << " " << triangle_vector[i].v1.y << " " << triangle_vector[i].v1.z << std::endl;
-        std::cout << triangle_vector[i].v2.x << " " << triangle_vector[i].v2.y << " " << triangle_vector[i].v2.z << std::endl;
-        std::cout << triangle_vector[i].v3.x << " " << triangle_vector[i].v3.y << " " << triangle_vector[i].v3.z << std::endl;
-    }
-    return triangle_vector;
+    return vertices;
 }
-
-/*    
-for(int i=0; i<text_raw.size(); ++i) {
-        std::string line_raw = text_raw.at(i);
-
-        std::vector<float3> triangle = std::vector<float3>();
-        for(int j=0; j<3; ++j) {
-            std::vector<float> point = std::vector<float>();
-            
-            for(int k=0; k<3; ++k) {
-                const char* line_raw_c = line_raw.c_str();
-                std::vector<std::string> float_strs = std::vector<std::string>();
-                std::vector<char> cbuf = std::vector<char>();
-                for(int l=0; l<strlen(line_raw_c); ++l) {
-                    if(line_raw_c[3*j+l] == ' ') {
-                        std::string strbuf = std::string();
-                        for(int f=0; f<cbuf.size(); ++f) {
-                            strbuf.push_back(cbuf[f]);
-                        }
-                        float_strs.push_back(strbuf);
-                        cbuf = std::vector<char>();
-                    }else {
-                        cbuf.push_back(line_raw_c[3*j+l]);
-                    }
-                }
-
-                for(int l=0; l<float_strs.size(); ++l) {
-                    point.push_back(std::stof(float_strs[l]));
-                }
-            }
-            float3 ptf3;
-            ptf3.x = point[0];
-            ptf3.y = point[1];
-            ptf3.z = point[2];
-            triangle.push_back(ptf3);
-        }
-        Triangle triangle_t;
-        triangle_t.v1 = triangle[0];
-        triangle_t.v2 = triangle[1];
-        triangle_t.v3 = triangle[2];
-        triangle_vector.push_back(triangle_t);
-    }
-
-    std::cout << triangle_vector[0].v1.x << ",";
-    std::cout << triangle_vector[0].v1.y << ",";
-    std::cout << triangle_vector[0].v1.z << std::endl;
-
-    std::cout << triangle_vector[0].v2.x << ",";
-    std::cout << triangle_vector[0].v2.y << ",";
-    std::cout << triangle_vector[0].v2.z << std::endl;
-
-    std::cout << triangle_vector[0].v3.x << ",";
-    std::cout << triangle_vector[0].v3.y << ",";
-    std::cout << triangle_vector[0].v3.z << std::endl;
-*/

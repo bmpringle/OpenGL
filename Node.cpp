@@ -5,7 +5,7 @@
 class Node {
     public:
         std::string name;
-        std::vector<Triangle> vertices;
+        std::vector<Vertex> vertices;
         std::vector<Node> children;
         float3 pos;
 
@@ -13,7 +13,7 @@ class Node {
             children.push_back(child);
         }
 
-        Node(std::string name, std::vector<Triangle> vertices, std::vector<Node> children) {
+        Node(std::string name, std::vector<Vertex> vertices = std::vector<Vertex>(), std::vector<Node> children = std::vector<Node>()) {
             this->vertices = vertices;
             this->children = children;
             this->pos = float3(0, 0, 0);
@@ -24,67 +24,42 @@ class Node {
         }
 
         void setPos(float3 pos_) {
-            std::cout << pos_.x << " " << pos_.y << " "  << pos_.z << std::endl;
             this->pos = pos_;
-            std::cout << pos.x << " " << pos.y << " "  << pos.z << std::endl;
         }
 
-        std::vector<Triangle> getTriangles() {
+        std::vector<Vertex> getVertices() {
             return vertices;
         }
 
-        std::vector<float> getVertices() {
-            std::vector<Triangle> tempvertices = vertices;
-
-            std::vector<float> tempverticesfloat = std::vector<float>();
+        std::vector<float> getVectorBuffer() {
+            std::vector<Vertex> tempvertices = vertices;
+            std::vector<float> floats= std::vector<float>();
 
             for(int i=0; i<tempvertices.size(); ++i) {
-                float3 v1 = tempvertices[i].v1;
-                float3 v2 = tempvertices[i].v2;
-                float3 v3 = tempvertices[i].v3;
+                floats.push_back(tempvertices[i].v1.x);
+                floats.push_back(tempvertices[i].v1.y);
+                floats.push_back(tempvertices[i].v1.z);
 
-                float v11 = v1.x;
-                float v12 = v1.y;
-                float v13 = v1.z;
-
-                float v21 = v2.x;
-                float v22 = v2.y;
-                float v23 = v2.z;
-
-                float v31 = v3.x;
-                float v32 = v3.y;
-                float v33 = v3.z;
-
-                tempverticesfloat.push_back(v11);
-                tempverticesfloat.push_back(v12);
-                tempverticesfloat.push_back(v13);
-
-                tempverticesfloat.push_back(v21);
-                tempverticesfloat.push_back(v22);
-                tempverticesfloat.push_back(v23);
-
-                tempverticesfloat.push_back(v31);
-                tempverticesfloat.push_back(v32);
-                tempverticesfloat.push_back(v33);
+                floats.push_back(tempvertices[i].color.x);
+                floats.push_back(tempvertices[i].color.y);
+                floats.push_back(tempvertices[i].color.z);
+                floats.push_back(tempvertices[i].color.w);
             }
 
             for(int i=0; i<children.size(); ++i) {
-                for(int j=0; j<children[i].getVertices().size(); ++j) {
-                    tempverticesfloat.push_back(children[i].getVertices()[j]);
+                std::vector<float> childverts = children[i].getVectorBuffer();
+                for(int j=0; j<childverts.size(); ++j) {
+                    floats.push_back(childverts[j]);
                 }
             }
 
-            for(int i=0; i<tempverticesfloat.size()/3; ++i) {
-                float _pos [3];
-                _pos[0] = pos.x;
-                _pos[1] = pos.y;
-                _pos[2] = pos.z;
-                
-                for(int j=0; j<3; ++j) {
-                    tempverticesfloat[3*i+j] = tempverticesfloat[3*i+j] + _pos[j];
-                }
+            for(int i=0; i<floats.size()/7; ++i) {
+                floats[7*i] = floats[7*i]+pos.x;
+                floats[7*i+1] = floats[7*i+1]+pos.y;
+                floats[7*i+2] = floats[7*i+2]+pos.z;
             }
-            return tempverticesfloat;
+
+            return floats;
         }
 
         Node lookUpNode(char* name) {
@@ -96,7 +71,7 @@ class Node {
                     return children[i].lookUpNode(name);
                 } 
             }
-            return Node("null", std::vector<Triangle>(), std::vector<Node>());
+            return Node("null", std::vector<Vertex>(), std::vector<Node>());
         }
     
     private:

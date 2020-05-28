@@ -72,15 +72,12 @@ unsigned int loadShaders() {
     return shaderProgram;
 }
 
-unsigned int makeVAO(unsigned int VBO) {
+unsigned int makeVAO(unsigned int VBO, unsigned int VBO_C) {
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);  
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);  
 
     return VAO;
 }
@@ -111,16 +108,29 @@ void render(GLFWwindow* window, int width, int height, unsigned int VAO, unsigne
     glDrawArrays(GL_TRIANGLES, 0, scene.getRenderVertices().size());
 }
 
-void _logic(unsigned int VAO, GLFWwindow* window) {
+void _logic(unsigned int VAO, unsigned int VBO, unsigned int VBO_C, GLFWwindow* window) {
 
     scene = logic.doLogicTick(scene, window);
     glBindVertexArray(VAO);
     float array [scene.getRenderVertices().size()];
-
     for(int i=0; i<scene.getRenderVertices().size(); ++i) {
         array[i] = scene.getRenderVertices()[i];
     }
+
+    for(int i=0; i<scene.getRenderVertices().size()/7; ++i) {
+        std::cout << "xyz is " << array[7*i] << ", " << array[7*i+1] << ", " << array[7*i+2] << ", and the color is " << array[7*i+3] << ", " << array[7*i+4] << ", " << array[7*i+5] << ", " << array[7*i+6] << std::endl;
+    }
+
+    glBindBuffer(GL_VERTEX_ARRAY, VBO);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);  
+
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);  
+
     glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
+    
 }
 
 int main() {
@@ -152,14 +162,17 @@ int main() {
     unsigned int VBO;
     glGenBuffers(1, &VBO);
 
-    unsigned int VAO = makeVAO(VBO); 
+    unsigned int VBO_C;
+    glGenBuffers(1, &VBO_C);
+
+    unsigned int VAO = makeVAO(VBO, VBO_C); 
     
     scene = logic.setup(scene);
     glClearColor(1, 0, 0, 1);
     //run app
     while(!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
-        _logic(VAO, window);
+        _logic(VAO, VBO, VBO_C, window);
 
         render(window, width, height, VAO, shaderProgram);
         glfwSwapBuffers(window);
