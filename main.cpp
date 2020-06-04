@@ -118,7 +118,7 @@ void _logic(unsigned int VAO, unsigned int VBO, unsigned int VBO_C, GLFWwindow* 
     }
 
     for(int i=0; i<scene.getRenderVertices().size()/7; ++i) {
-        std::cout << "xyz is " << array[7*i] << ", " << array[7*i+1] << ", " << array[7*i+2] << ", and the color is " << array[7*i+3] << ", " << array[7*i+4] << ", " << array[7*i+5] << ", " << array[7*i+6] << std::endl;
+        //std::cout << "xyz is " << array[7*i] << ", " << array[7*i+1] << ", " << array[7*i+2] << ", and the color is " << array[7*i+3] << ", " << array[7*i+4] << ", " << array[7*i+5] << ", " << array[7*i+6] << std::endl;
     }
 
     glBindBuffer(GL_VERTEX_ARRAY, VBO);

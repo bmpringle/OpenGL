@@ -17,6 +17,7 @@ class Node {
             this->vertices = vertices;
             this->children = children;
             this->pos = float3(0, 0, 0);
+            this->name = name;
         }
 
         float3 getPos() {
@@ -25,6 +26,10 @@ class Node {
 
         void setPos(float3 pos_) {
             this->pos = pos_;
+        }
+
+        void changePos(float3 _pos) {
+            pos = float3(pos.x+_pos.x, pos.y+_pos.y, pos.z+_pos.z);
         }
 
         std::vector<Vertex> getVertices() {
@@ -62,16 +67,16 @@ class Node {
             return floats;
         }
 
-        Node lookUpNode(char* name) {
-            if(this->name == name) {
-                return *this;
+        Node* lookUpNode(char* _name) {
+            if(name == _name) {
+                return this;
             }
             for(int i=0; i<children.size(); ++i) {
-                if(children[i].lookUpNode(name).name != "null") {
-                    return children[i].lookUpNode(name);
+                if(children[i].lookUpNode(_name) != nullptr) {
+                    return children[i].lookUpNode(_name);
                 } 
             }
-            return Node("null", std::vector<Vertex>(), std::vector<Node>());
+            return nullptr;
         }
     
     private:

@@ -20,7 +20,7 @@ class Scene {
             aspectRatio = x/y;
         }
 
-        Node lookUpNode(char* name) {
+        Node* lookUpNode(char* name) {
             return root_node.lookUpNode(name);
         }
 };
