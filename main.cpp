@@ -1,186 +1,168 @@
-#include<cstdlib>
-extern "C" {
-    #include<glad/glad.h>
-}
-#include<GLFW/glfw3.h>
-#include<stdio.h> 
-#include<iostream>
-#include<fstream>
-#include "Logic.cpp"
+#include "Engine.cpp"
 
-static Scene scene = Scene();
-static Logic logic = Logic();
+class PongLogic : public Logic {
+        public:
 
-void error_callback(int error, const char* description)
-{
-    fprintf(stderr, "Error: %s\n", description);
-}
+        int movePaddleLeft = 0;
+        int movePaddleRight = 0;
+        bool reset = false;
+        int paddleHits = 0;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}  
+        void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) override {
+            if(key == GLFW_KEY_R) {
+                if(action ==GLFW_PRESS) {
+                    reset = true;
+                }
+                if(action == GLFW_RELEASE) {
+                    reset = false;
+                }
+            }
 
-void cleanup(GLFWwindow* window) {
-    glfwDestroyWindow(window);
-    glfwTerminate();
-}
+            if(key == GLFW_KEY_W) {
+                if(action == GLFW_PRESS) {
+                    movePaddleLeft = 1;
+                }
+                if(action == GLFW_RELEASE) {
+                    if(movePaddleLeft != -1) {
+                        movePaddleLeft = 0;
+                    }
+                }
+            }
+            if(key == GLFW_KEY_S) {
+                if(action == GLFW_PRESS) {
+                    movePaddleLeft = -1;
+                }
+                if(action == GLFW_RELEASE) {
+                    if(movePaddleLeft != 1) {
+                        movePaddleLeft = 0;
+                    }
+                }
+            }
 
-unsigned int loadShaders() {
-    std::string vertexSrc = "";
-    std::string fragmentSrc = "";
+            if(key == GLFW_KEY_UP) {
+                if(action == GLFW_PRESS) {
+                    movePaddleRight = 1;
+                }
+                if(action == GLFW_RELEASE) {
+                    if(movePaddleRight != -1) {
+                        movePaddleRight = 0;
+                    }
+                }
+            }
+            if(key == GLFW_KEY_DOWN) {
+                if(action == GLFW_PRESS) {
+                    movePaddleRight = -1;
+                }
+                if(action == GLFW_RELEASE) {
+                    if(movePaddleRight != 1) {
+                        movePaddleRight = 0;
+                    }
+                }
+            }
+        }
 
-    std::ifstream infile;
-    infile.open("vertexshader.txt");
-    while(!infile.eof()) {
-        std::string tsrc = "";
-        std::getline(infile, tsrc);
-        vertexSrc = vertexSrc + tsrc + "\n";
-    }
-    infile.close();
+        Scene setup(Scene scene) override {
+            time(&time_old);
 
-    infile.open("fragmentshader.txt");
-    while(!infile.eof()) {
-        std::string tsrc = "";
-        std::getline(infile, tsrc);
-        fragmentSrc = fragmentSrc + tsrc  + "\n";
-    }
-    infile.close();
+            Node p1 = Node("paddleleft", loadTriangles("paddle.txt"));
+            Node p2 = Node("paddleright", loadTriangles("paddle.txt"));
+            Node ball = Node("ball", loadTriangles("ball.txt"));
+            p1.setPos(float3(-1, -0.15, 0));
+            p2.setPos(float3(1-0.02, -0.15, 0));
 
-    const char *vertexSource = vertexSrc.c_str();
-    const char *fragmentSource = fragmentSrc.c_str();
+            scene.root_node.addChild(p1);
+            scene.root_node.addChild(p2);
+            scene.root_node.addChild(ball);
+            srand(time(NULL));
 
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexSource, NULL);
-    glCompileShader(vertexShader);
+            float distancepersecond = 1;
 
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-    glCompileShader(fragmentShader);
+            float ballyvel = (rand() % 100)/(100/distancepersecond);
 
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
+            float ballxvel = sqrt(distancepersecond*distancepersecond-ballyvel*ballyvel);
+            ballvec.y = ballyvel/60;
+            ballvec.x = ballxvel/60;
 
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+            return scene;
+        }
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader); 
-    return shaderProgram;
-}
+        Scene doLogicTick(Scene scene, GLFWwindow* window) override {
+            int width, height;
+            glfwGetWindowSize(window, &width, &height);
+            scene.updateAspectRatio(width, height);
+            time_t temp;
+            time(&temp);
+            if(difftime(temp, time_old) >= 1/60) {
+                time_old = temp;
+                if(scene.lookUpNode("ball") == nullptr) {
+                    std::cout << "nullnode unexpected!" << std::endl;
+                }else {
+                    float ballRadius = 0.05;
+                    float paddleWidth = 0.02;
+                    float paddleHeight = 0.15;
 
-unsigned int makeVAO(unsigned int VBO, unsigned int VBO_C) {
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);  
+                    if(scene.lookUpNode("ball")->getPos().y >= 1-ballRadius || scene.lookUpNode("ball")->getPos().y <= -1+ballRadius) {
+                        ballvec.y = -ballvec.y;
+                    }
+                    if(scene.lookUpNode("ball")->getPos().x >= 1-ballRadius || scene.lookUpNode("ball")->getPos().x <= -1+ballRadius) {
+                        ballvec = float3();
+                    }
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+                    float3 ball = scene.lookUpNode("ball")->getPos();
+                    float bBottom = ball.y - ballRadius;
+                    float bTop = ball.y + ballRadius;
 
-    return VAO;
-}
+                    float3 paddleRight = scene.lookUpNode("paddleright")->getPos();
+                    float rBottom = paddleRight.y - paddleHeight + paddleHeight;
+                    float rTop = paddleRight.y + paddleHeight + paddleHeight;
 
-GLFWwindow* loadGLFW() {
-    if (!glfwInit()) {
-        return nullptr;
-    }
-    glfwSetErrorCallback(error_callback);
+                    if(rBottom <= bTop && rTop >= bBottom) {
+                        if(ball.x+ballRadius >= paddleRight.x) {
+                            ballvec.x = -ballvec.x;
+                        }
+                    }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+                    float3 paddleLeft = scene.lookUpNode("paddleleft")->getPos();
+                    float lBottom = paddleLeft.y - paddleHeight + paddleHeight;
+                    float lTop = paddleLeft.y + paddleHeight + paddleHeight;
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "OpenGL Engine", NULL, NULL);
-    if (!window) {
-        return nullptr;
-    }
+                    if(lBottom <= bTop && lTop >= bBottom) {
+                        if(ball.x-ballRadius <= paddleLeft.x+paddleWidth) {
+                            ballvec.x = -ballvec.x;
+                        }
+                    }
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);  
+                    scene.lookUpNode("paddleleft")->changePos(float3(0, movePaddleLeft*0.025, 0));
+                    scene.lookUpNode("paddleright")->changePos(float3(0, movePaddleRight*0.025, 0));
 
-    glfwMakeContextCurrent(window);
-    return window;
-}
+                    scene.lookUpNode("ball")->changePos(float3(ballvec.x*(1+paddleHits/10), ballvec.y*(1+paddleHits/10), ballvec.z));
 
-void render(GLFWwindow* window, int width, int height, unsigned int VAO, unsigned int shaderProgram) {
-    glUseProgram(shaderProgram);  
-    glDrawArrays(GL_TRIANGLES, 0, scene.getRenderVertices().size());
-}
+                    if(reset == true) {
+                        scene.lookUpNode("ball")->setPos(float3());
+                        scene.lookUpNode("paddleleft")->setPos(float3(-1, -0.15, 0));
+                        scene.lookUpNode("paddleright")->setPos(float3(1-0.02, -0.15, 0));
 
-void _logic(unsigned int VAO, unsigned int VBO, unsigned int VBO_C, GLFWwindow* window) {
+                        float distancepersecond = 1;
 
-    scene = logic.doLogicTick(scene, window);
-    glBindVertexArray(VAO);
-    float array [scene.getRenderVertices().size()];
-    for(int i=0; i<scene.getRenderVertices().size(); ++i) {
-        array[i] = scene.getRenderVertices()[i];
-    }
+                        float ballyvel = (rand() % 100)/(100/distancepersecond);
 
-    for(int i=0; i<scene.getRenderVertices().size()/7; ++i) {
-        //std::cout << "xyz is " << array[7*i] << ", " << array[7*i+1] << ", " << array[7*i+2] << ", and the color is " << array[7*i+3] << ", " << array[7*i+4] << ", " << array[7*i+5] << ", " << array[7*i+6] << std::endl;
-    }
+                        float ballxvel = sqrt(distancepersecond*distancepersecond-ballyvel*ballyvel);
+                        ballvec.y = ballyvel/60;
+                        ballvec.x = ballxvel/60;
+                        paddleHits = 0;
+                    }
+                }
+            }
+            return scene;
+        }
 
-    glBindBuffer(GL_VERTEX_ARRAY, VBO);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);  
-
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);  
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
-    
-}
+    private:
+        time_t time_old;
+        float3 ballvec = float3(0.0083, 0, 0);
+};
 
 int main() {
-
-    //load GLFW
-    GLFWwindow* window = loadGLFW();
-
-    //check if GLFW was loaded
-    if(window == nullptr) {
-        return 1;
-    }
-
-    //load GLAD
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        return 1;
-    }
-
-    //set framebuffer settings for glfw
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glfwSwapInterval(1);
-
-    //set viewport
-    glViewport(0, 0, width, height);
-
-    //get shaders, VBO, and VAO
-    unsigned int shaderProgram = loadShaders();
-
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-
-    unsigned int VBO_C;
-    glGenBuffers(1, &VBO_C);
-
-    unsigned int VAO = makeVAO(VBO, VBO_C); 
-    
-    scene = logic.setup(scene);
-    glClearColor(1, 0, 0, 1);
-    //run app
-    while(!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
-        _logic(VAO, VBO, VBO_C, window);
-
-        render(window, width, height, VAO, shaderProgram);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-    
-    //cleanup
-    cleanup(window);
-    return 0;
+    PongLogic logic = PongLogic();
+    Engine engine = Engine(logic);
+    engine.runEngine();
 }
-

@@ -74,12 +74,12 @@ static std::vector<Vertex> loadTriangles(std::string fromFile) {
             vertices.push_back(v);
 
             for(int i=0; i<vertices.size(); ++i) {
-                std::cout << v.v1.x << v.v1.y << v.v1.z << v.color.x << v.color.y << v.color.z << v.color.w << std::endl;
+            //    std::cout << v.v1.x << v.v1.y << v.v1.z << v.color.x << v.color.y << v.color.z << v.color.w << std::endl;
             }
     }
 
     for(int i=0; i<vertices.size(); ++i) {
-        std::cout << vertices[i].v1.x << vertices[i].v1.y << vertices[i].v1.z << vertices[i].color.x << vertices[i].color.y << vertices[i].color.z << vertices[i].color.w << std::endl;
+     //   std::cout << vertices[i].v1.x << vertices[i].v1.y << vertices[i].v1.z << vertices[i].color.x << vertices[i].color.y << vertices[i].color.z << vertices[i].color.w << std::endl;
     }
     
     return vertices;
