@@ -5,7 +5,7 @@ Engine::Engine(Logic& _logic) : logic(_logic) {
 }
 
 int Engine::runEngine() {
-    scene = logic.setup(scene);
+    logic.setup(scene);
     glClearColor(1, 0, 0, 1);
     //run app
     while(!glfwWindowShouldClose(window)) {
@@ -151,7 +151,7 @@ void Engine::render(GLFWwindow* window, int width, int height, unsigned int VAO,
 
 void Engine::_logic(unsigned int VAO, unsigned int VBO, unsigned int VBO_C, GLFWwindow* window) {
 
-    scene = logic.doLogicTick(scene, window);
+    logic.doLogicTick(scene, window);
     glBindVertexArray(VAO);
     float array [scene.getRenderVertices().size()];
     for(int i=0; i<scene.getRenderVertices().size(); ++i) {

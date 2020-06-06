@@ -1,5 +1,5 @@
 default:
-
+	make lib ./games/adventure.cpp
 package:
 	clang++ -std=c++2a -I./glad/include -I/usr/local/Cellar/boost/1.72.0_2/include -I. ./glad/src/glad.c Scene.cpp Engine.cpp Node.cpp main.cpp -o engine.build -L/usr/local/Cellar/boost/1.72.0_2/lib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -L/usr/local/lib -lglfw3
 lib:

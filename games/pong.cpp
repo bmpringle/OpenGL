@@ -61,7 +61,7 @@ class PongLogic : public Logic {
             }
         }
 
-        Scene setup(Scene scene) override {
+        void setup(Scene& scene) override {
             time(&time_old);
 
             Node p1 = Node("paddleleft", loadTriangles("paddle.txt"));
@@ -82,11 +82,9 @@ class PongLogic : public Logic {
             float ballxvel = sqrt(distancepersecond*distancepersecond-ballyvel*ballyvel);
             ballvec.y = ballyvel/60;
             ballvec.x = ballxvel/60;
-
-            return scene;
         }
 
-        Scene doLogicTick(Scene scene, GLFWwindow* window) override {
+        void doLogicTick(Scene& scene, GLFWwindow* window) override {
             int width, height;
             glfwGetWindowSize(window, &width, &height);
             scene.updateAspectRatio(width, height);
@@ -153,7 +151,6 @@ class PongLogic : public Logic {
                     }
                 }
             }
-            return scene;
         }
 
     private:
