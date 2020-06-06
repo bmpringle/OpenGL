@@ -1,5 +1,8 @@
-#include "Scene.cpp"
+#pragma once
+
+#include "Scene.h"
 #include <random>
+#include<GLFW/glfw3.h>
 
 class Logic {
     public:

@@ -1,3 +1,5 @@
+#pragma once
+
 #include<vector>
 #include<fstream>
 #include<boost/algorithm/string.hpp>
@@ -22,7 +24,7 @@ struct float4 {
 
 struct Vertex {
     float3 v1;
-    float4  color;
+    float4 color;
 };
 
 static bool isSpace(char c) {
@@ -35,7 +37,7 @@ static std::vector<std::string> loadFileToString(std::string fromFile) {
     int filelength = 0;
 
     std::ifstream infile;
-    infile.open(fromFile);
+    infile.open("assets/"+fromFile);
 
     while(!infile.eof()) {
         std::string tsrc = "";
